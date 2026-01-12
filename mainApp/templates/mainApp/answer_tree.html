@@ -1,0 +1,48 @@
+{% load static %}
+{% load humanize %}
+{% for answer in answers %}
+<div class="answer-item">
+    <div class="answer-header">
+        <div class="answer-author">{{ answer.user.first_name }} {{ answer.user.last_name }}</div>
+        <div>{{ answer.date_time|naturaltime }}</div>
+    </div>
+    <p>{{ answer.reply }}</p>
+    <div class="answer-actions">
+        <div class="answer-rating">
+            <button class="action-btn btn-sm" onclick="rateAnswer(this, 'up')">
+                <i class="fas fa-thumbs-up"></i> <span>{{ answer.upvotes }}</span>
+            </button>
+            <button class="action-btn btn-sm" onclick="rateAnswer(this, 'down')">
+                <i class="fas fa-thumbs-down"></i> <span>{{ answer.downvotes }}</span>
+            </button>
+            {% if answer.is_best_answer %}
+            <span style="color: var(--success-color); font-weight: 600;">Best Answer</span>
+            {% endif %}
+        </div>
+        <button class="action-btn btn-sm" onclick="toggleReplyForm('replyToAnswer{{ answer.id }}')">
+            <i class="fas fa-reply"></i> Reply
+        </button>
+
+    </div>
+    
+    <!-- Reply to answer form -->
+    <div class="reply-form" id="replyToAnswer{{ answer.id }}" style="display: none;">
+        <textarea class="form-control" placeholder="Write your reply to this answer..." rows="3"></textarea>
+        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+            <button class="btn btn-sm btn-outline" onclick="toggleReplyForm('replyToAnswer{{ answer.id }}')">Cancel</button>
+            <button class="btn btn-sm btn-primary">Post Reply</button>
+        </div>
+    </div>
+</div>
+
+<!-- RECURSION -->
+{% if answer.children.all %}
+<div style="margin-left:50px;">
+    {% include "mainApp/answer_tree.html" with answers=answer.children.all %}
+</div>
+{% endif %}
+
+{% empty %}
+<div class="no-answers"><p>No answers yet. Be the first to answer!</p></div>
+{% endfor %}
+<!-- <script src="{% static 'mainApp/js_files/submit_ans.js' %}"></script> -->

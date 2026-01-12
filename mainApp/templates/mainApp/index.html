@@ -1,0 +1,343 @@
+{% extends 'mainApp/base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}EnvHealthHub | Student Platform {% endblock %}
+{% block content %}
+    <!-- Quick Actions Bar -->
+    <div class="quick-actions">
+        <div class="container">
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="quickPublishBtn">
+                    <i class="fas fa-file-upload"></i> Publish Your Work
+                </button>
+                <button class="btn btn-outline" id="quickAskBtn">
+                    <i class="fas fa-question-circle"></i> Ask a Question
+                </button>
+                <!-- <button class="btn btn-outline" id="quickMaterialBtn">
+                    <i class="fas fa-search"></i> Find Materials
+                </button> -->
+                <button class="btn btn-outline" id="viewNotificationsBtn">
+                    <i class="fa-solid fa-heart" style="color: red;"></i> Donate
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="user-level-badge">
+                    <i class="fas fa-graduation-cap"></i> {{ request.user.education.education_level}}'s Level Student
+                </div>
+                <h1>Environmental Health Education Platform</h1>
+                <p>Access regulations, learning materials, participate in discussions, and publish your work. Serving students from diploma to masters level.</p>
+                
+                <div class="action-buttons" style="justify-content: center; margin-top: 30px;">
+                    <button class="btn btn-primary" style="background-color: white; color: var(--primary-color);" id="heroPublishBtn">
+                        <i class="fas fa-upload"></i> Publish Your Research
+                    </button>
+                    <button class="btn btn-outline" style="border-color: white; color: white;" id="heroAskBtn">
+                        <i class="fas fa-question"></i> Ask the Community
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Publish Work Section -->
+                <section class="publish-section" id="publish">
+                    <div class="section-title">
+                        <h2>Publish Your Work</h2>
+                        <span class="btn btn-sm btn-outline" id="viewDraftsBtn">
+                            <i class="fas fa-file"></i> View Drafts (2)
+                        </span>
+                    </div>
+                    
+                    <div class="publish-form">
+                        <div class="form-group">
+                            <label for="workTitle">Title of Your Work *</label>
+                            <input type="text" id="workTitle" class="form-control" placeholder="Enter a descriptive title for your research or project">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="workType">Type of Work *</label>
+                                <select id="workType" class="form-control">
+                                    <option value="">Select type</option>
+                                    <option value="research">Research Paper</option>
+                                    <option value="thesis">Thesis/Dissertation</option>
+                                    <option value="project">Project Report</option>
+                                    <option value="case-study">Case Study</option>
+                                    <option value="review">Literature Review</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="educationLevel">Education Level *</label>
+                                <select id="educationLevel" class="form-control">
+                                    <option value="">Select level</option>
+                                    <option value="diploma">Diploma</option>
+                                    <option value="bachelor">Bachelor's Degree</option>
+                                    <option value="master">Master's Degree</option>
+                                    <option value="phd">PhD</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="workAbstract">Abstract/Summary *</label>
+                            <textarea id="workAbstract" class="form-control" placeholder="Provide a summary of your work (minimum 150 words)"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="workKeywords">Keywords</label>
+                            <input type="text" id="workKeywords" class="form-control" placeholder="Enter relevant keywords separated by commas">
+                            <small style="color: var(--gray-color); margin-top: 5px; display: block;">This helps others find your work</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="workFile">Upload File (Optional)</label>
+                            <input type="file" id="workFile" class="form-control" style="padding: 8px 15px;">
+                            <small style="color: var(--gray-color); margin-top: 5px; display: block;">Supported formats: PDF, DOC, DOCX (Max 10MB)</small>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px;">
+                            <button class="btn btn-outline" id="saveDraftBtn">
+                                <i class="far fa-save"></i> Save as Draft
+                            </button>
+                            <button class="btn btn-primary" id="publishWorkBtn">
+                                <i class="fas fa-paper-plane"></i> Publish Now
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Discussions Section -->
+                <section class="discussion-section" id="discussions">
+                    <div class="section-title">
+                        <h2>Recent Questions</h2>
+                        <button class="btn btn-primary" id="newQuestionBtn">
+                            <i class="fas fa-plus"></i> Ask Question
+                        </button>
+                    </div>
+
+                    <div class="discussion-list">
+                        {% for question in question_obj %}
+                        <!-- Question Item -->
+                        <div class="discussion-item">
+                            <h3>{{ question.question_title }}</h3>
+                            <div class="discussion-meta">
+                                <div>
+                                    <span class="answer-author">{{ question.user.first_name }}&nbsp;&nbsp;&nbsp;{{ question.user.last_name }}</span> • 
+                                    <span>{{ question.date_time|naturaltime }}</span> • 
+                                    <span style="background-color: #e7f4ff; padding: 3px 10px; border-radius: 15px; font-size: 0.8rem;">{{ question.category }}</span>
+                                </div>
+                                <div>
+                                    <span><i class="fas fa-eye"></i> 142</span>
+                                </div>
+                            </div>
+                            
+                            <p>{{ question.description }}</p>
+                            <div class="discussion-actions">
+                                <button class="action-btn">
+                                    <i class="far fa-comment"></i> <span>{{ question.answers.count }} answers</span>
+                                </button>
+                                <button class="action-btn">
+                                    <i class="far fa-bookmark"></i> <span>Save</span>
+                                </button>
+                                <button class="action-btn" onclick="toggleReplyForm('replyForm{{ question.id }}')">
+                                    <i class="fas fa-reply"></i> <span>Reply</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Reply form (initially hidden) -->
+                            <div class="reply-form" id="replyForm{{ question.id }}" style="display: none;">
+                                <!-- {% csrf_token %} -->
+                                <textarea class="form-control" placeholder="Write your answer..." rows="3"></textarea>
+                                <input type="hidden" value="{{ question.id }}">
+                                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                                    <button class="btn btn-sm btn-outline" onclick="toggleReplyForm('replyForm{{ question.id }}')">Cancel</button>
+                                    <button class="btn btn-sm btn-primary">Post Answer</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Answers Section -->
+                            <div class="answers-section">
+                                <h4>Answers ({{ question.answers.count }})</h4>
+
+                                {% include 'mainApp/answer_tree.html' with answers=question.top_answers %}
+                                
+                                {% if question.answers.count > 1 %}
+                                <div style="text-align: center; margin-top: 15px;">
+                                    <button class="btn btn-outline btn-sm" onclick="loadMoreAnswers({{ question.id }})">
+                                        <i class="fas fa-chevron-down"></i> Load More Answers
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="no-qns-block">
+                            <p>No questions available, be the first one to ask</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if question_obj.has_next %}
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="?page={{ question_obj.next_page_number }}" class="view-all">View All Questions <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    {% endif %}
+                </section>
+            </div>
+            
+            <!-- Right Column (Sidebar) -->
+            <div class="sidebar">
+                <!-- User Level Card -->
+                {% if request.user.is_authenticated %}
+                <div class="sidebar-card">
+                    <h3>Your Academic Level</h3>
+                    <div class="level-indicator">
+                        <div style="font-size: 2.5rem; color: var(--primary-color);">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: 5px;">{{ request.user.education.education_level }}'s Level</h4>
+                            <p style="color: var(--gray-color); font-size: 0.9rem;">Progress to next level</p>
+                        </div>
+                    </div>
+                    <div class="level-progress">
+                        <div class="level-progress-bar" id="levelProgress"></div>
+                    </div>
+                    <div class="level-details">
+                        <div class="level-item">
+                            <span>Materials Accessed</span>
+                            <span style="font-weight: 600;">42</span>
+                        </div>
+                        <div class="level-item">
+                            <span>Questions Asked</span>
+                            <span style="font-weight: 600;">7</span>
+                        </div>
+                        <div class="level-item">
+                            <span>Answers Provided</span>
+                            <span style="font-weight: 600;">15</span>
+                        </div>
+                        <div class="level-item">
+                            <span>Works Published</span>
+                            <span style="font-weight: 600;">3</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Notifications Card -->
+                <div class="sidebar-card">
+                    <div class="section-title">
+                        <h3>Notifications</h3>
+                        <a href="#" class="view-all" style="font-size: 0.9rem;" id="markAllReadBtn">Mark All Read</a>
+                    </div>
+                    
+                    <ul class="notifications-list">
+                        <li class="notification-item unread">
+                            <div class="notification-text">
+                                <strong>Dr. Sarah Williams</strong> replied to your question about EPA regulations
+                            </div>
+                            <div class="notification-time">2 hours ago</div>
+                        </li>
+                        <li class="notification-item unread">
+                            <div class="notification-text">
+                                Your publication "Urban Air Quality Analysis" received 5 new downloads
+                            </div>
+                            <div class="notification-time">1 day ago</div>
+                        </li>
+                        <li class="notification-item">
+                            <div class="notification-text">
+                                New regulation update: Water Quality Standards 2023
+                            </div>
+                            <div class="notification-time">2 days ago</div>
+                        </li>
+                        <li class="notification-item">
+                            <div class="notification-text">
+                                Your answer was marked as "Best Answer" in a discussion
+                            </div>
+                            <div class="notification-time">3 days ago</div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Quick Stats Card -->
+                <div class="sidebar-card">
+                    <h3>Your Quick Stats</h3>
+                    <div class="level-details">
+                        <div class="level-item">
+                            <span><i class="fas fa-thumbs-up" style="color: var(--success-color);"></i> Answer Likes</span>
+                            <span style="font-weight: 600;">127</span>
+                        </div>
+                        <div class="level-item">
+                            <span><i class="fas fa-star" style="color: var(--warning-color);"></i> Helpful Answers</span>
+                            <span style="font-weight: 600;">8</span>
+                        </div>
+                        <div class="level-item">
+                            <span><i class="fas fa-download" style="color: var(--primary-color);"></i> Downloads</span>
+                            <span style="font-weight: 600;">156</span>
+                        </div>
+                        <div class="level-item">
+                            <span><i class="fas fa-eye" style="color: var(--info-color);"></i> Profile Views</span>
+                            <span style="font-weight: 600;">89</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ask Question Modal -->
+    <div class="modal" id="askQuestionModal">
+        {% csrf_token %}
+        <div class="modal-content">
+            <button class="modal-close" id="closeAskModal">&times;</button>
+            <h2 style="margin-bottom: 20px;">Ask a Question</h2>
+            <div class="form-group">
+                <label for="questionTitle">Question Title *</label>
+                <input type="text" id="questionTitle" class="form-control" placeholder="Be specific about what you're asking">
+            </div>
+            
+            <div class="form-group">
+                <label for="questionCategory">Category *</label>
+                <select id="questionCategory" class="form-control">
+                    <option value="">Select category</option>
+                    <option value="regulations">Regulations & Laws</option>
+                    <option value="methodology">Methodology</option>
+                    <option value="resources">Learning Resources</option>
+                    <option value="career">Career Advice</option>
+                    <option value="technical">Technical Issues</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="questionDetails">Question Details *</label>
+                <textarea id="questionDetails" class="form-control" rows="6" placeholder="Provide details about your question. Include any relevant context or specific problems you're facing."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="questionTags">Tags</label>
+                <input type="text" id="questionTags" class="form-control" placeholder="Add up to 5 tags (e.g., EPA, regulations, compliance)">
+                <small style="color: var(--gray-color); margin-top: 5px; display: block;">Separate tags with commas. This helps the right people find your question.</small>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px;">
+                <button class="btn btn-outline" id="cancelQuestionBtn">Cancel</button>
+                <button class="btn btn-primary" id="submit_QuestionBtn">Post Question</button>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'mainApp/js_files/submit_ans.js' %}"></script>
+    <script src="{% static 'mainApp/js_files/submit_qns.js' %}"></script>
+    
+{% endblock %}

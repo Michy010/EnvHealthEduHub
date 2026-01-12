@@ -1,0 +1,85 @@
+{% extends 'mainApp/base.html' %}
+{% load static %}
+{% block title %} Sign In | EnvHealth EduHub {% endblock %}
+{% block content %}
+<div class="auth-container">
+    <!-- Left Panel - Branding -->
+    <div class="auth-branding" style="background: linear-gradient(135deg, #1a6b50 0%, #2a9d8f 100%);">
+        <div class="logo-register">
+            <div class="logo-icon">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <div class="logo-text">EnvHealthHub</div>
+        </div>
+        
+        <div class="branding-content">
+            <h1 style="color: white;">Welcome Back to Environmental Health Learning</h1>
+            <p style="color: white;">Sign in to access comprehensive environmental health resources, participate in discussions, and continue your educational journey.</p>
+            
+            <ul class="features-list">
+                <li><i class="fas fa-graduation-cap"></i> Access materials for all education levels</li>
+                <li><i class="fas fa-book-open"></i> Download regulations and guidelines</li>
+                <li><i class="fas fa-comments"></i> Participate in expert discussions</li>
+                <li><i class="fas fa-file-upload"></i> Publish your research work</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Right Panel - Sign In Form -->
+    <div class="auth-form-container">
+        <div class="auth-header">
+            <h2>Sign In to Your Account</h2>
+            <p>Access your personalized learning dashboard</p>
+        </div>
+
+        <!-- Google Sign In -->
+        <button class="google-signin" id="googleSignIn">
+            <i class="fab fa-google"></i>
+            Sign in with Google
+        </button>
+
+        <div class="divider">
+            <span>Or continue with email</span>
+        </div>
+
+        <!-- Email Sign In Form -->
+        <form class="auth-form" id="signInForm">
+            {% csrf_token %}
+            <div class="register-form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" name="email" id="email" class="register-form-control" placeholder="Enter your email address" required>
+            </div>
+
+            <div class="register-form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" name="password" id="password" class="register-form-control" placeholder="Enter your password" required>
+                <button type="button" class="password-toggle" id="togglePassword">
+                    <i class="far fa-eye"></i>
+                </button>
+            </div>
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" name="remember-me" id="rememberMe">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <div class="error-block" id="error-block"></div>
+            
+            <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #1a6b50 0%, #2a9d8f 100%);">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? 
+                <a href="{% url 'accounts:register' %}" id="signUpLink">Sign up now</a>
+            </p>
+        </div>
+    </div>
+</div>
+<script src="{% static 'mainApp/js_files/login.js' %}"></script>
+{% endblock %}

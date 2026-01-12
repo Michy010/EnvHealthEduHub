@@ -1,0 +1,136 @@
+{% extends 'mainApp/base.html' %}
+{% load static %}
+{% block title %}{% endblock %}
+{% block content %}
+<div class="auth-container">
+        <!-- Left Panel - Branding -->
+        <div class="auth-branding">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-leaf" style="color: #e9c46a;"></i>
+                </div>
+                <div class="logo-text">EnvHealthHub</div>
+            </div>
+            
+            <div class="branding-content">
+                <h1 style="color: white;">Join Our Environmental Health Community</h1>
+                <p>Create an account to access comprehensive learning materials, participate in discussions, and contribute to environmental health knowledge.</p>
+                
+                <ul class="benefits-list">
+                    <li><i class="fas fa-user-graduate"></i> Personalized learning paths</li>
+                    <li><i class="fas fa-download"></i> Access to regulations database</li>
+                    <li><i class="fas fa-comments"></i> Join expert discussions</li>
+                    <li><i class="fas fa-award"></i> Publish and share your research</li>
+                    <li><i class="fas fa-certificate"></i> Earn achievements and recognition</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Panel - Register Form -->
+        <div class="auth-form-container">
+            <div class="auth-header">
+                <h2>Create Your Account</h2>
+                <p>Join thousands of environmental health students and professionals</p>
+            </div>
+
+            <!-- Google Register -->
+            <button class="google-register" id="googleRegister">
+                <i class="fab fa-google"></i>
+                Sign up with Google
+            </button>
+
+            <div class="divider">
+                <span>Or sign up with email</span>
+            </div>
+
+            <!-- Registration Form -->
+            <form class="auth-form" id="registerForm">
+                {% csrf_token %}
+                <div class="register-form-row">
+                    <div class="register-form-group">
+                        <label for="firstName" class="form-label required">First Name</label>
+                        <input type="text" name="first_name" id="firstName" class="register-form-control" placeholder="Enter your first name" required>
+                    </div>
+                    
+                    <div class="register-form-group">
+                        <label for="lastName" class="form-label required">Last Name</label>
+                        <input type="text" name="last_name" id="lastName" class="register-form-control" placeholder="Enter your last name" required>
+                    </div>
+                </div>
+
+                <div class="register-form-group">
+                    <label for="regEmail" class="form-label required">Email Address</label>
+                    <input type="email" name="email" id="regEmail" class="register-form-control" placeholder="Enter your email address" required>
+                </div>
+
+                <div class="register-form-group">
+                    <label for="regPassword" class="form-label required">Password</label>
+                    <input type="password" name="password" id="regPassword" class="register-form-control" placeholder="Create a strong password" required minlength="8">
+                    <button type="button" class="password-toggle" id="toggleRegPassword">
+                        <i class="far fa-eye"></i>
+                    </button>
+                    <div class="password-strength">
+                        <span>Password strength:</span>
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <span id="strengthText">Weak</span>
+                    </div>
+                </div>
+
+                <div class="register-form-group">
+                    <label for="confirmPassword" class="form-label required">Confirm Password</label>
+                    <input type="password" name="password" id="confirmPassword" class="register-form-control" placeholder="Confirm your password" required>
+                    <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                        <i class="far fa-eye"></i>
+                    </button>
+                    <div id="passwordMatch" style="margin-top: 8px; font-size: 0.85rem; display: none;"></div>
+                </div>
+
+                <div class="register-form-row">
+                    <div class="register-form-group">
+                        <label for="educationLevel" class="form-label required">Education Level</label>
+                        <div class="select-wrapper">
+                            <select id="educationLevel" name="education" class="register-form-control form-select" required>
+                                <option value="">Select your level</option>
+                                <option value="diploma">Diploma</option>
+                                <option value="bachelor">Bachelor's Degree</option>
+                                <option value="master">Master's Degree</option>
+                                <option value="phd">PhD/Doctorate</option>
+                                <option value="professional">Professional</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="register-form-group">
+                        <label for="institution" class="form-label">Institution (Optional)</label>
+                        <input type="text" name="institution" id="institution" class="register-form-control" placeholder="Your school/university">
+                    </div>
+                </div>
+
+                <div class="error-block" id="error-block"></div>
+
+                <div class="terms-agreement">
+                    <input type="checkbox" name="checkbox" id="agreeTerms" required>
+                    <label for="agreeTerms">
+                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. 
+                        I understand that I'll receive educational updates and can unsubscribe at any time.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? 
+                    <a href="{% url 'accounts:login' %}" id="signInLink">Sign in here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'mainApp/js_files/register.js' %}"></script>
+{% endblock %}

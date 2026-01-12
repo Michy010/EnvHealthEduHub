@@ -1,0 +1,1072 @@
+{% extends 'mainApp/base.html' %}
+{% block title %}Learning Materials | EnvHealth EduHub{% endblock %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Materials | EnvHealth EduHub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Slab:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a6b50;
+            --primary-light: #2a9d8f;
+            --secondary-color: #264653;
+            --accent-color: #e9c46a;
+            --accent-dark: #f4a261;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gray-color: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--primary-light);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 5px 0;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+            bottom: -5px;
+            left: 0;
+            border-radius: 2px;
+        }
+
+        /* Hero Section */
+        .materials-hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .materials-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23000000' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .materials-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .materials-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        /* Education Level Navigation */
+        .education-levels {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 40px;
+        }
+
+        .level-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .level-btn {
+            padding: 15px 30px;
+            background: white;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: var(--dark-color);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-btn i {
+            font-size: 1.3rem;
+            transition: var(--transition);
+        }
+
+        .level-btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .level-btn.active {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 5px 20px rgba(26, 107, 80, 0.2);
+        }
+
+        .level-btn.active i {
+            transform: scale(1.2);
+        }
+
+        .level-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--accent-color);
+            color: var(--secondary-color);
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Materials Container */
+        .materials-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .materials-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Diploma Levels (NTA 4-6) */
+        .diploma-level {
+            margin-bottom: 50px;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        .level-header {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #1e3c52 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .level-header h2 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .level-header h2 i {
+            color: var(--accent-color);
+        }
+
+        .module-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+
+        .modules-grid {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        /* Module Cards */
+        .module-card {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 2px solid var(--light-gray);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-light);
+        }
+
+        .module-card.highlighted {
+            border: 2px solid var(--accent-color);
+        }
+
+        .module-card.highlighted::before {
+            content: 'NEW';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--accent-color);
+            color: var(--secondary-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .module-header {
+            padding: 25px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            position: relative;
+        }
+
+        .module-code {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: var(--primary-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .module-header h3 {
+            font-size: 1.4rem;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .module-credit {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .module-body {
+            padding: 25px;
+        }
+
+        .module-description {
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .lecturer-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .lecturer-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .lecturer-details h4 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .lecturer-details p {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+        }
+
+        .notices-list {
+            margin-bottom: 25px;
+        }
+
+        .notice-item {
+            padding: 15px;
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .notice-item:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        .notice-item h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--secondary-color);
+        }
+
+        .notice-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--gray-color);
+        }
+
+        .notice-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .module-footer {
+            padding: 0 25px 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 107, 80, 0.2);
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            flex: 1;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Bachelor's Years */
+        .year-section {
+            margin-bottom: 50px;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        .year-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .year-header h2 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .year-header h2 i {
+            color: var(--accent-color);
+        }
+
+        .semester-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .semester-tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--gray-color);
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+
+        .semester-tab:hover {
+            color: var(--primary-color);
+            background: #f8f9fa;
+        }
+
+        .semester-tab.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background: #f8f9fa;
+        }
+
+        .semester-content {
+            padding: 30px;
+            display: none;
+        }
+
+        .semester-content.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Download Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 25px 30px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .download-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .download-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--light-gray);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .download-item:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+
+        .download-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        .download-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        .download-btn {
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .download-btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--secondary-color);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #495057;
+            color: #adb5bd;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .modules-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 992px) {
+            .materials-hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .level-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .level-btn {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .materials-hero {
+                padding: 60px 0;
+            }
+            
+            .materials-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .modules-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .module-card {
+                margin: 0;
+            }
+            
+            .semester-tabs {
+                flex-direction: column;
+            }
+            
+            .semester-tab {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .module-footer {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .notice-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+        }
+
+        h2 {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="materials-hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 style="color: white;">Learning Materials & Notices</h1>
+                <p>Access comprehensive educational materials organized by education level.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Education Level Navigation -->
+        <section class="education-levels">
+            <div class="level-nav">
+                <button type="button" class="level-btn active" onclick="showSection('diploma')">
+                    <i class="fas fa-graduation-cap"></i>
+                    Diploma
+                    <span class="level-badge">{{ diploma_courses|length }}</span>
+                </button>
+                <button type="button" class="level-btn" onclick="showSection('bachelor')">
+                    <i class="fas fa-university"></i>
+                    Bachelor's Degree
+                    <span class="level-badge">{{ bachelor_courses|length }}</span>
+                </button>
+                <button type="button" class="level-btn" onclick="showSection('master')">
+                    <i class="fas fa-user-graduate"></i>
+                    Master's Degree
+                    <span class="level-badge">{{ master_courses|length }}</span>
+                </button>
+                <button type="button" class="level-btn" onclick="showSection('resources')">
+                    <i class="fas fa-book-open"></i>
+                    Additional Resources
+                    <span class="level-badge">∞</span>
+                </button>
+            </div>
+        </section>
+        
+        <!-- Diploma Materials (Always visible by default) -->
+        <div class="materials-container" id="diploma-section">
+            <div class="level-header">
+                <h2><i class="fas fa-graduation-cap"></i> Diploma Courses</h2>
+                <div class="module-count">{{ diploma_courses|length }} Modules</div>
+            </div>
+            
+            {% if diploma_courses %}
+            <div class="modules-grid">
+                {% for course in diploma_courses %}
+                <div class="module-card {% if forloop.first %}highlighted{% endif %}">
+                    <div class="module-header">
+                        <span class="module-code">{{ course.course_code }}</span>
+                        <h3>{{ course.course_name }}</h3>
+                    </div>
+                    <div class="module-body">
+                        <p class="module-description">
+                            {{ course.course_description|truncatechars:200 }}
+                        </p>
+                        {% if course.course_credit %}
+                        <div class="module-credit">
+                            <i class="fas fa-credit-card"></i> {{ course.course_credit }} Credits
+                        </div>
+                        {% endif %}
+                        <div class="module-footer">
+                            {% if course.course_file and course.course_file != 'No file' %}
+                            <a href="{{ course.course_file.url }}" class="btn btn-primary" download>
+                                <i class="fas fa-download"></i> Download Materials
+                            </a>
+                            {% else %}
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-download"></i> No File Available
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-courses" style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; margin-top: 20px;">
+                <i class="fas fa-book" style="font-size: 48px; color: #6c757d; margin-bottom: 20px;"></i>
+                <h3>No Diploma Courses Available Yet</h3>
+                <p>No diploma courses have been added to the system yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Bachelor's Degree Materials (Hidden by default) -->
+        <div class="materials-container" id="bachelor-section" style="display: none;">
+            <div class="level-header">
+                <h2><i class="fas fa-university"></i> Bachelor's Degree Courses</h2>
+                <div class="module-count">{{ bachelor_courses|length }} Modules</div>
+            </div>
+            
+            {% if bachelor_courses %}
+            <div class="modules-grid">
+                {% for course in bachelor_courses %}
+                <div class="module-card {% if forloop.first %}highlighted{% endif %}">
+                    <div class="module-header">
+                        <span class="module-code">{{ course.course_code }}</span>
+                        <h3>{{ course.course_name }}</h3>
+                    </div>
+                    <div class="module-body">
+                        <p class="module-description">
+                            {{ course.course_description|truncatechars:200 }}
+                        </p>
+                        {% if course.course_credit %}
+                        <div class="module-credit">
+                            <i class="fas fa-credit-card"></i> {{ course.course_credit }} Credits
+                        </div>
+                        {% endif %}
+                        <div class="module-footer">
+                            {% if course.course_file and course.course_file != 'No file' %}
+                            <a href="{{ course.course_file.url }}" class="btn btn-primary" download>
+                                <i class="fas fa-download"></i> Download Materials
+                            </a>
+                            {% else %}
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-download"></i> No File Available
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-courses" style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; margin-top: 20px;">
+                <i class="fas fa-university" style="font-size: 48px; color: #6c757d; margin-bottom: 20px;"></i>
+                <h3>No Bachelor's Degree Courses Available Yet</h3>
+                <p>No bachelor's degree courses have been added to the system yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Master's Degree Materials (Hidden by default) -->
+        <div class="materials-container" id="master-section" style="display: none;">
+            <div class="level-header">
+                <h2><i class="fas fa-user-graduate"></i> Master's Degree Courses</h2>
+                <div class="module-count">{{ master_courses|length }} Modules</div>
+            </div>
+            
+            {% if master_courses %}
+            <div class="modules-grid">
+                {% for course in master_courses %}
+                <div class="module-card {% if forloop.first %}highlighted{% endif %}">
+                    <div class="module-header">
+                        <span class="module-code">{{ course.course_code }}</span>
+                        <h3>{{ course.course_name }}</h3>
+                    </div>
+                    <div class="module-body">
+                        <p class="module-description">
+                            {{ course.course_description|truncatechars:200 }}
+                        </p>
+                        {% if course.course_credit %}
+                        <div class="module-credit">
+                            <i class="fas fa-credit-card"></i> {{ course.course_credit }} Credits
+                        </div>
+                        {% endif %}
+                        <div class="module-footer">
+                            {% if course.course_file and course.course_file != 'No file' %}
+                            <a href="{{ course.course_file.url }}" class="btn btn-primary" download>
+                                <i class="fas fa-download"></i> Download Materials
+                            </a>
+                            {% else %}
+                            <button class="btn btn-primary" disabled>
+                                <i class="fas fa-download"></i> No File Available
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-courses" style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; margin-top: 20px;">
+                <i class="fas fa-user-graduate" style="font-size: 48px; color: #6c757d; margin-bottom: 20px;"></i>
+                <h3>No Master's Degree Courses Available Yet</h3>
+                <p>No master's degree courses have been added to the system yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Additional Resources (Hidden by default) -->
+        <div class="materials-container" id="resources-section" style="display: none;">
+            <div class="level-header">
+                <h2><i class="fas fa-book-open"></i> Additional Learning Resources</h2>
+                <div class="module-count">Free Resources</div>
+            </div>
+            
+            <div class="modules-grid">
+                <!-- Resource 1 -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <span class="module-code">RES 001</span>
+                        <h3>Environmental Health Journal Collection</h3>
+                        <div class="module-credit">
+                            <i class="fas fa-book"></i> 50+ Articles
+                        </div>
+                    </div>
+                    <div class="module-body">
+                        <p class="module-description">
+                            Curated collection of open-access journal articles covering recent research in environmental health.
+                        </p>
+                        <div class="module-footer">
+                            <button class="btn btn-primary" onclick="alert('This feature is coming soon!')">
+                                <i class="fas fa-download"></i> Download Collection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resource 2 -->
+                <div class="module-card">
+                    <div class="module-header">
+                        <span class="module-code">RES 002</span>
+                        <h3>Environmental Health Toolkit</h3>
+                        <div class="module-credit">
+                            <i class="fas fa-toolbox"></i> Tools & Templates
+                        </div>
+                    </div>
+                    <div class="module-body">
+                        <p class="module-description">
+                            Practical tools, templates, and checklists for environmental health assessments and reporting.
+                        </p>
+                        <div class="module-footer">
+                            <button class="btn btn-primary" onclick="alert('This feature is coming soon!')">
+                                <i class="fas fa-download"></i> Download Toolkit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple function to show/hide sections
+        function showSection(sectionId) {
+            // Hide all sections
+            document.getElementById('diploma-section').style.display = 'none';
+            document.getElementById('bachelor-section').style.display = 'none';
+            document.getElementById('master-section').style.display = 'none';
+            document.getElementById('resources-section').style.display = 'none';
+            
+            // Show selected section
+            document.getElementById(sectionId + '-section').style.display = 'block';
+            
+            // Update active button
+            const buttons = document.querySelectorAll('.level-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('onclick') === `showSection('${sectionId}')`) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+        
+        // Initialize with diploma section visible
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('diploma');
+        });
+    </script>
+</body>
+</html>
+{% endblock %}
