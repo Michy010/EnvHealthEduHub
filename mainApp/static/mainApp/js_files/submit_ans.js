@@ -1,4 +1,4 @@
-// Updated submit_ans.js with proper URL and JSON handling
+// submit_ans.js - UPDATED VERSION
 document.addEventListener('DOMContentLoaded', function() {
     // Function to toggle reply forms
     window.toggleReplyForm = function(formId) {
@@ -12,97 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    // Add event listeners to all reply submit buttons
-    document.querySelectorAll('.reply-form .btn-primary, .nested-reply-form .btn-primary').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const replyForm = this.closest('.reply-form, .nested-reply-form');
-            const textarea = replyForm.querySelector('textarea');
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            
-            // Get question ID and parent ID from data attributes
-            const questionId = textarea.dataset.questionId || 
-                              replyForm.querySelector('input[type="hidden"]')?.value;
-            const parentId = textarea.dataset.answerId || 
-                           replyForm.querySelector('[name="parent_id"]')?.value || 
-                           replyForm.querySelector('[name="answerID"]')?.value;
-            
-            if (!textarea) {
-                console.error('Textarea not found');
-                return;
-            }
-            
-            const reply = textarea.value.trim();
-            
-            if (!reply) {
-                alert('Please write an answer before submitting.');
-                return;
-            }
-            
-            if (!questionId) {
-                console.error('Question ID not found');
-                return;
-            }
-            
-            // Submit the answer
-            const formData = new FormData();
-            formData.append('reply', reply);
-            formData.append('question', questionId);
-            formData.append('csrfmiddlewaretoken', csrfToken);
-            
-            if (parentId) {
-                formData.append('parent_id', parentId);
-            }
-            
-            // IMPORTANT: Use the correct URL - check your urls.py
-            fetch('/reply_qn/', {  // Changed from '/reply-question/'
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken
-                },
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                console.log('Success:', data);
-                if (data.success) {
-                    // Clear textarea and hide form
-                    textarea.value = '';
-                    if (replyForm.id.includes('nestedReplyForm')) {
-                        toggleReplyForm(replyForm.id);
-                    } else if (replyForm.id.includes('replyForm')) {
-                        toggleReplyForm(replyForm.id);
-                    }
-                    // Reload to show new reply
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
-                } else {
-                    alert(data.message || 'Error submitting reply.');
-                }
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('An error occurred. Please try again.');
-            });
-        });
-    });
-    
-    // Add event listener for Enter key in textareas
-    document.querySelectorAll('.reply-form textarea, .nested-reply-form textarea').forEach(textarea => {
-        textarea.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                e.preventDefault();
-                const submitBtn = this.closest('.reply-form, .nested-reply-form').querySelector('.btn-primary');
-                if (submitBtn) {
-                    submitBtn.click();
-                }
-            }
-        });
-    });
-    
-    // Rate answer functionality
+    // Rate answer functionality ONLY
     window.rateAnswer = function(answerId, type) {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
