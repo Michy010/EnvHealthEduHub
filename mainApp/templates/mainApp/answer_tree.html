@@ -1,48 +1,62 @@
 {% load static %}
 {% load humanize %}
 {% for answer in answers %}
-<div class="answer-item">
+<div class="answer-item" id="answer-{{ answer.id }}">
     <div class="answer-header">
         <div class="answer-author">{{ answer.user.first_name }} {{ answer.user.last_name }}</div>
-        <div>{{ answer.date_time|naturaltime }}</div>
+        <div class="answer-time">{{ answer.date_time|naturaltime }}</div>
     </div>
-    <p>{{ answer.reply }}</p>
+    <div class="answer-content">
+        <p>{{ answer.reply }}</p>
+    </div>
     <div class="answer-actions">
         <div class="answer-rating">
-            <button class="action-btn btn-sm" onclick="rateAnswer(this, 'up')">
-                <i class="fas fa-thumbs-up"></i> <span>{{ answer.upvotes }}</span>
+            <button class="action-btn btn-sm {% if answer.user_vote == 'up' %}active upvote{% endif %}" 
+                    onclick="rateAnswer({{ answer.id }}, 'up')"
+                    style="{% if answer.user_vote == 'up' %}color: var(--success-color); border-color: var(--success-color);{% endif %}">
+                <i class="fas fa-thumbs-up"></i> 
+                <span id="upvotes-{{ answer.id }}">{{ answer.upvotes|default:0 }}</span>
             </button>
-            <button class="action-btn btn-sm" onclick="rateAnswer(this, 'down')">
-                <i class="fas fa-thumbs-down"></i> <span>{{ answer.downvotes }}</span>
+            <button class="action-btn btn-sm {% if answer.user_vote == 'down' %}active downvote{% endif %}" 
+                    onclick="rateAnswer({{ answer.id }}, 'down')"
+                    style="{% if answer.user_vote == 'down' %}color: var(--danger-color); border-color: var(--danger-color);{% endif %}">
+                <i class="fas fa-thumbs-down"></i> 
+                <span id="downvotes-{{ answer.id }}">{{ answer.downvotes|default:0 }}</span>
             </button>
             {% if answer.is_best_answer %}
-            <span style="color: var(--success-color); font-weight: 600;">Best Answer</span>
+            <span class="best-answer-badge">✓ Best Answer</span>
             {% endif %}
         </div>
-        <button class="action-btn btn-sm" onclick="toggleReplyForm('replyToAnswer{{ answer.id }}')">
+        <button class="action-btn btn-sm" onclick="toggleReplyForm('nestedReplyForm{{ answer.id }}')">
             <i class="fas fa-reply"></i> Reply
         </button>
-
     </div>
     
-    <!-- Reply to answer form -->
-    <div class="reply-form" id="replyToAnswer{{ answer.id }}" style="display: none;">
-        <textarea class="form-control" placeholder="Write your reply to this answer..." rows="3"></textarea>
+    <!-- Nested Reply Form -->
+    <div class="nested-reply-form" id="nestedReplyForm{{ answer.id }}" style="display: none;">
+        {% csrf_token %}
+        <textarea class="form-control" 
+                  placeholder="Write your reply..." 
+                  rows="2"
+                  data-question-id="{{ answer.question.id }}"
+                  data-answer-id="{{ answer.id }}"></textarea>
+        <input type="hidden" name="parent_id" value="{{ answer.id }}">
         <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-            <button class="btn btn-sm btn-outline" onclick="toggleReplyForm('replyToAnswer{{ answer.id }}')">Cancel</button>
+            <button class="btn btn-sm btn-outline" onclick="toggleReplyForm('nestedReplyForm{{ answer.id }}')">Cancel</button>
             <button class="btn btn-sm btn-primary">Post Reply</button>
         </div>
     </div>
+    
+    <!-- Display Nested Replies -->
+    {% if answer.children.all %}
+    <div class="nested-replies">
+        {% include "mainApp/answer_tree.html" with answers=answer.children.all %}
+    </div>
+    {% endif %}
 </div>
-
-<!-- RECURSION -->
-{% if answer.children.all %}
-<div style="margin-left:50px;">
-    {% include "mainApp/answer_tree.html" with answers=answer.children.all %}
-</div>
-{% endif %}
 
 {% empty %}
-<div class="no-answers"><p>No answers yet. Be the first to answer!</p></div>
+<div class="no-answers">
+    <p>No answers yet. Be the first to answer!</p>
+</div>
 {% endfor %}
-<!-- <script src="{% static 'mainApp/js_files/submit_ans.js' %}"></script> -->

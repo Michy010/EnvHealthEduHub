@@ -8,8 +8,10 @@ urlpatterns = [
     path('material/', views.coursesView, name='material'),
     path('regulation/', views.regulationView, name='regulation'),
     path('submit_question/', views.questionView, name='question'),
-    path('reply_qn/', views.reply_question, name='reply'),
-
+    path('reply_qn/', views.reply_question, name='reply'),  # Fixed URL name
+    path('rate-answer/', views.rate_answer, name='rate_answer'),
+    path('load-more-answers/', views.load_more_answers, name='load_more_answers'),
+    
     # Course management URLs
     path('admin-access/courses/', views.admin_course_dashboard, name='admin_course_dashboard'),
     path('admin-access/courses/add/', views.add_course, name='add_course'),
@@ -21,5 +23,4 @@ urlpatterns = [
 
     # Public courses URL (for students)
     path('courses/', views.coursesView, name='courses'),
-    
 ]

@@ -13,9 +13,6 @@
                 <button class="btn btn-outline" id="quickAskBtn">
                     <i class="fas fa-question-circle"></i> Ask a Question
                 </button>
-                <!-- <button class="btn btn-outline" id="quickMaterialBtn">
-                    <i class="fas fa-search"></i> Find Materials
-                </button> -->
                 <button class="btn btn-outline" id="viewNotificationsBtn">
                     <i class="fa-solid fa-heart" style="color: red;"></i> Donate
                 </button>
@@ -130,7 +127,7 @@
                     <div class="discussion-list">
                         {% for question in question_obj %}
                         <!-- Question Item -->
-                        <div class="discussion-item">
+                        <div class="discussion-item" id="question-{{ question.id }}">
                             <h3>{{ question.question_title }}</h3>
                             <div class="discussion-meta">
                                 <div>
@@ -139,11 +136,13 @@
                                     <span style="background-color: #e7f4ff; padding: 3px 10px; border-radius: 15px; font-size: 0.8rem;">{{ question.category }}</span>
                                 </div>
                                 <div>
-                                    <span><i class="fas fa-eye"></i> 142</span>
+                                    <span><i class="fas fa-eye"></i> {{ question.view_flag|default:0 }}</span>
                                 </div>
                             </div>
                             
-                            <p>{{ question.description }}</p>
+                            <div class="question-description">
+                                {{ question.description }}
+                            </div>
                             <div class="discussion-actions">
                                 <button class="action-btn">
                                     <i class="far fa-comment"></i> <span>{{ question.answers.count }} answers</span>
@@ -158,24 +157,27 @@
                             
                             <!-- Reply form (initially hidden) -->
                             <div class="reply-form" id="replyForm{{ question.id }}" style="display: none;">
-                                <!-- {% csrf_token %} -->
-                                <textarea class="form-control" placeholder="Write your answer..." rows="3"></textarea>
-                                <input type="hidden" value="{{ question.id }}">
+                                {% csrf_token %}
+                                <textarea class="form-control reply-textarea" 
+                                          placeholder="Write your answer..." 
+                                          rows="3"
+                                          data-question-id="{{ question.id }}"></textarea>
                                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                                     <button class="btn btn-sm btn-outline" onclick="toggleReplyForm('replyForm{{ question.id }}')">Cancel</button>
-                                    <button class="btn btn-sm btn-primary">Post Answer</button>
+                                    <button class="btn btn-sm btn-primary" onclick="submitReply({{ question.id }})">Post Answer</button>
                                 </div>
                             </div>
                             
                             <!-- Answers Section -->
-                            <div class="answers-section">
+                            <div class="answers-section" id="answers-{{ question.id }}">
                                 <h4>Answers ({{ question.answers.count }})</h4>
-
+                                
                                 {% include 'mainApp/answer_tree.html' with answers=question.top_answers %}
                                 
-                                {% if question.answers.count > 1 %}
+                                {% if question.answers.count > 5 %}
                                 <div style="text-align: center; margin-top: 15px;">
-                                    <button class="btn btn-outline btn-sm" onclick="loadMoreAnswers({{ question.id }})">
+                                    <button class="btn btn-outline btn-sm load-more-answers" 
+                                            data-question-id="{{ question.id }}">
                                         <i class="fas fa-chevron-down"></i> Load More Answers
                                     </button>
                                 </div>
@@ -218,19 +220,19 @@
                     <div class="level-details">
                         <div class="level-item">
                             <span>Materials Accessed</span>
-                            <span style="font-weight: 600;">42</span>
+                            <span style="font-weight: 600;">{{ materials_accessed|default:0 }}</span>
                         </div>
                         <div class="level-item">
                             <span>Questions Asked</span>
-                            <span style="font-weight: 600;">7</span>
+                            <span style="font-weight: 600;">{{ questions_asked|default:0 }}</span>
                         </div>
                         <div class="level-item">
                             <span>Answers Provided</span>
-                            <span style="font-weight: 600;">15</span>
+                            <span style="font-weight: 600;">{{ answers_provided|default:0 }}</span>
                         </div>
                         <div class="level-item">
                             <span>Works Published</span>
-                            <span style="font-weight: 600;">3</span>
+                            <span style="font-weight: 600;">{{ works_published|default:0 }}</span>
                         </div>
                     </div>
                 </div>
@@ -277,19 +279,19 @@
                     <div class="level-details">
                         <div class="level-item">
                             <span><i class="fas fa-thumbs-up" style="color: var(--success-color);"></i> Answer Likes</span>
-                            <span style="font-weight: 600;">127</span>
+                            <span style="font-weight: 600;" id="answerLikes">{{ answer_likes|default:0 }}</span>
                         </div>
                         <div class="level-item">
                             <span><i class="fas fa-star" style="color: var(--warning-color);"></i> Helpful Answers</span>
-                            <span style="font-weight: 600;">8</span>
+                            <span style="font-weight: 600;" id="helpfulAnswers">{{ helpful_answers|default:0 }}</span>
                         </div>
                         <div class="level-item">
                             <span><i class="fas fa-download" style="color: var(--primary-color);"></i> Downloads</span>
-                            <span style="font-weight: 600;">156</span>
+                            <span style="font-weight: 600;" id="downloads">{{ downloads|default:0 }}</span>
                         </div>
                         <div class="level-item">
                             <span><i class="fas fa-eye" style="color: var(--info-color);"></i> Profile Views</span>
-                            <span style="font-weight: 600;">89</span>
+                            <span style="font-weight: 600;" id="profileViews">{{ profile_views|default:0 }}</span>
                         </div>
                     </div>
                 </div>
@@ -337,7 +339,489 @@
             </div>
         </div>
     </div>
+    
+    <!-- Add CSS for better styling and rating buttons -->
+    <style>
+        /* Discussion Item Styling */
+        .discussion-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+        
+        .discussion-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .question-description {
+            margin: 15px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .discussion-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .action-btn:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        
+        /* Rating Button Styles */
+        .answer-rating {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .answer-rating .action-btn {
+            background: none;
+            border: 1px solid #dee2e6;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .answer-rating .action-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+        
+        .answer-rating .action-btn.active {
+            border-color: var(--primary-color);
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        
+        .answer-rating .action-btn.upvote.active {
+            color: var(--success-color);
+            border-color: var(--success-color);
+        }
+        
+        .answer-rating .action-btn.downvote.active {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .best-answer-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        /* Answers Section */
+        .answers-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .answers-section h4 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        /* Answer Item Styling */
+        .answer-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .nested-replies .answer-item {
+            border-left-color: #6c757d;
+            background: #f1f3f4;
+        }
+        
+        .answer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .answer-author {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .answer-time {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .answer-content {
+            margin: 10px 0;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        
+        .answer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .nested-replies {
+            margin-left: 40px;
+            margin-top: 15px;
+            padding-left: 15px;
+            border-left: 2px dashed #dee2e6;
+        }
+        
+        /* Reply Form Styling */
+        .reply-form, .nested-reply-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .reply-form textarea, .nested-reply-form textarea {
+            resize: vertical;
+            min-height: 80px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        
+        .reply-form textarea:focus, .nested-reply-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        /* No Content Blocks */
+        .no-qns-block, .no-answers {
+            text-align: center;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        /* View All Link */
+        .view-all {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: color 0.2s;
+        }
+        
+        .view-all:hover {
+            color: #0056b3;
+        }
+        
+        /* Quick Stats */
+        .level-details .level-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .level-details .level-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Progress Bar */
+        .level-progress {
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 10px 0 15px 0;
+            overflow: hidden;
+        }
+        
+        .level-progress-bar {
+            height: 100%;
+            background: var(--primary-color);
+            width: 65%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+    </style>
+    
     <script src="{% static 'mainApp/js_files/submit_ans.js' %}"></script>
     <script src="{% static 'mainApp/js_files/submit_qns.js' %}"></script>
+    
+    <!-- Additional JavaScript for dynamic features -->
+    <script>
+        // Initialize quick stats with dynamic values
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load dynamic stats if available
+            loadUserStats();
+            
+            // Set up modal triggers
+            setupModalTriggers();
+            
+            // Initialize progress bar
+            initializeProgressBar();
+            
+            // Set up load more buttons
+            setupLoadMoreButtons();
+            
+            // Set up reply button listeners
+            setupReplyButtonListeners();
+        });
+        
+        function loadUserStats() {
+            // You can make an AJAX call here to load actual user stats
+            console.log('Loading user stats...');
+        }
+        
+        function setupModalTriggers() {
+            // Quick ask button
+            const quickAskBtn = document.getElementById('quickAskBtn');
+            const heroAskBtn = document.getElementById('heroAskBtn');
+            const newQuestionBtn = document.getElementById('newQuestionBtn');
+            
+            const askQuestionModal = document.getElementById('askQuestionModal');
+            const closeAskModal = document.getElementById('closeAskModal');
+            const cancelQuestionBtn = document.getElementById('cancelQuestionBtn');
+            
+            function openAskModal() {
+                if (askQuestionModal) {
+                    askQuestionModal.style.display = 'block';
+                }
+            }
+            
+            function closeAskModalFunc() {
+                if (askQuestionModal) {
+                    askQuestionModal.style.display = 'none';
+                }
+            }
+            
+            if (quickAskBtn) quickAskBtn.addEventListener('click', openAskModal);
+            if (heroAskBtn) heroAskBtn.addEventListener('click', openAskModal);
+            if (newQuestionBtn) newQuestionBtn.addEventListener('click', openAskModal);
+            if (closeAskModal) closeAskModal.addEventListener('click', closeAskModalFunc);
+            if (cancelQuestionBtn) cancelQuestionBtn.addEventListener('click', closeAskModalFunc);
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === askQuestionModal) {
+                    closeAskModalFunc();
+                }
+            });
+        }
+        
+        function initializeProgressBar() {
+            const progressBar = document.getElementById('levelProgress');
+            if (progressBar) {
+                // Calculate progress based on user activity
+                progressBar.style.width = '65%';
+            }
+        }
+        
+        function setupLoadMoreButtons() {
+            // Add event listeners to load more buttons
+            document.querySelectorAll('.load-more-answers').forEach(button => {
+                button.addEventListener('click', function() {
+                    const questionId = this.dataset.questionId;
+                    loadMoreAnswers(questionId, this);
+                });
+            });
+        }
+        
+        function setupReplyButtonListeners() {
+            // Add event listeners to nested reply submit buttons
+            document.querySelectorAll('.nested-reply-form .btn-primary').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const replyForm = this.closest('.nested-reply-form');
+                    const textarea = replyForm.querySelector('textarea');
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    const questionId = textarea.dataset.questionId;
+                    const parentId = textarea.dataset.answerId || replyForm.querySelector('[name="parent_id"]')?.value;
+                    
+                    if (!textarea) {
+                        console.error('Textarea not found');
+                        return;
+                    }
+                    
+                    const reply = textarea.value.trim();
+                    
+                    if (!reply) {
+                        alert('Please write your reply before submitting.');
+                        return;
+                    }
+                    
+                    if (!questionId) {
+                        console.error('Question ID not found');
+                        return;
+                    }
+                    
+                    // Submit the reply
+                    const formData = new FormData();
+                    formData.append('reply', reply);
+                    formData.append('question', questionId);
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+                    
+                    if (parentId) {
+                        formData.append('parent_id', parentId);
+                    }
+                    
+                    fetch('/reply_qn/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        if (data.success) {
+                            textarea.value = '';
+                            toggleReplyForm(replyForm.id);
+                            // Reload to show new reply
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                        } else {
+                            alert(data.message || 'Error submitting reply.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        alert('An error occurred. Please try again.');
+                    });
+                });
+            });
+        }
+        
+        // Global function for reply submission
+        window.submitReply = function(questionId) {
+            const textarea = document.querySelector(`#replyForm${questionId} .reply-textarea`);
+            const reply = textarea.value.trim();
+            const csrfToken = document.querySelector(`#replyForm${questionId} [name=csrfmiddlewaretoken]`).value;
+            
+            if (!reply) {
+                alert('Please write your answer before submitting.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('reply', reply);
+            formData.append('question', questionId);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            
+            // FIXED: Use the correct URL '/reply_qn/' instead of '/reply-question/'
+            fetch('/reply_qn/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    textarea.value = '';
+                    toggleReplyForm(`replyForm${questionId}`);
+                    // Reload to show new answer
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                } else {
+                    alert(data.message || 'Error submitting answer.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        };
+        
+        // Global function to toggle reply forms
+        window.toggleReplyForm = function(formId) {
+            const form = document.getElementById(formId);
+            if (form) {
+                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+                if (form.style.display === 'block') {
+                    const textarea = form.querySelector('textarea');
+                    if (textarea) textarea.focus();
+                }
+            }
+        };
+        
+        // Load more answers function
+        window.loadMoreAnswers = function(questionId, buttonElement) {
+            const answersSection = document.getElementById(`answers-${questionId}`);
+            const answerItems = answersSection.querySelectorAll('.answer-item').length;
+            
+            fetch(`/load-more-answers/?question=${questionId}&offset=${answerItems}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.html) {
+                    // Insert new answers
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = data.html;
+                    
+                    // Insert each new answer before the load more button container
+                    const loadMoreContainer = buttonElement.parentElement;
+                    tempDiv.querySelectorAll('.answer-item').forEach(answer => {
+                        answersSection.insertBefore(answer, loadMoreContainer);
+                    });
+                    
+                    // Hide button if no more answers
+                    if (!data.has_more) {
+                        loadMoreContainer.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading more answers. Please try again.');
+            });
+        };
+    </script>
     
 {% endblock %}

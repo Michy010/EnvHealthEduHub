@@ -1,24 +1,56 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib import messages
-from . models import Course, Question, QuestionTag, Reply, Education, Semister
+import json
+from . models import Course, Question, QuestionTag, Reply, Education, Semister, Vote
 
 # Create your views here.
-def homeView (request):
+def homeView(request):
     question_obj = Question.objects.all().prefetch_related(
         'questiontag_set',
         'answers__children',
+        'answers__votes',
     ).order_by('-date_time')
 
     paginator = Paginator(question_obj, 5)
     page_num = request.GET.get('page')
     question_object = paginator.get_page(page_num)
+    
+    # Calculate dynamic stats for authenticated users
+    if request.user.is_authenticated:
+        questions_asked = Question.objects.filter(user=request.user).count()
+        answers_provided = Reply.objects.filter(user=request.user).count()
+        # Calculate total upvotes for user's answers
+        user_answers = Reply.objects.filter(user=request.user)
+        answer_likes = sum(answer.upvotes for answer in user_answers)
+        
+        # Annotate answers with user vote information
+        for question in question_object:
+            for answer in question.answers.all():
+                user_vote = answer.votes.filter(user=request.user).first()
+                if user_vote:
+                    answer.user_vote = user_vote.vote_type
+                else:
+                    answer.user_vote = None
+    else:
+        questions_asked = 0
+        answers_provided = 0
+        answer_likes = 0
 
     context = {
-        'question_obj': question_object
+        'question_obj': question_object,
+        'questions_asked': questions_asked,
+        'answers_provided': answers_provided,
+        'materials_accessed': 42,  # Replace with actual calculation
+        'works_published': 3,      # Replace with actual calculation
+        'answer_likes': answer_likes,       
+        'helpful_answers': 8,      # Replace with actual calculation
+        'downloads': 156,          # Replace with actual calculation
+        'profile_views': 89,       # Replace with actual calculation
     }
         
     return render(request, 'mainApp/index.html', context)
@@ -26,27 +58,41 @@ def homeView (request):
 @login_required
 def reply_question(request):
     if request.method == 'POST':
-        reply = request.POST.get('reply')
+        reply_text = request.POST.get('reply')
         question_id = request.POST.get('question')
-        parent = request.POST.get('parent_id')
+        parent_id = request.POST.get('parent_id')
         
-        print(f"Reply: {reply}")
+        print(f"Reply: {reply_text}")
         print(f"Question ID: {question_id}")
-        print(f'Parent ID: {parent}')
+        print(f'Parent ID: {parent_id}')
         
-        if not reply or not question_id:
+        if not reply_text or not question_id:
             return JsonResponse({
                 'success': False, 
                 'message': 'Reply and question ID are required.'
             })
         
         try:
+            # Get the question
+            question = Question.objects.get(id=question_id)
+            
+            # Handle parent reply if exists
+            parent_reply = None
+            if parent_id:
+                try:
+                    parent_reply = Reply.objects.get(id=parent_id)
+                except Reply.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Parent reply not found.'
+                    })
+            
             # Create the reply
             Reply.objects.create(
-                reply=reply,
-                question_id=question_id,
+                reply=reply_text,
+                question=question,
                 user=request.user,
-                parent = parent if parent else None
+                parent=parent_reply  # Pass the Reply instance, not ID
             )
             
             return JsonResponse({
@@ -54,20 +100,24 @@ def reply_question(request):
                 'message': 'Reply submitted successfully.'
             })
             
+        except Question.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Question not found.'
+            })
         except Exception as e:
             print(f"Error creating reply: {e}")
             return JsonResponse({
                 'success': False, 
-                'message': 'An error occurred while submitting your reply.'
+                'message': f'An error occurred while submitting your reply: {str(e)}'
             })
     
     # If not POST request, redirect to home
     return redirect('mainApp:home')
 
 
-def regulationView (request):
-    return render (request, 'mainApp/regulations.html')
-
+def regulationView(request):
+    return render(request, 'mainApp/regulations.html')
 
 @login_required
 def coursesView(request):
@@ -127,7 +177,6 @@ def coursesView(request):
             }, status=500)
     
     # GET request - display all courses
-    # Get all active courses
     all_courses = Course.objects.filter(is_active=True)
     
     # Search functionality
@@ -144,7 +193,6 @@ def coursesView(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Filter by education level for the template sections
     context = {
         'courses': page_obj,
         'diploma_courses': all_courses.filter(education_level='Diploma'),
@@ -157,53 +205,44 @@ def coursesView(request):
     
     return render(request, 'mainApp/materials.html', context)
 
-
-def questionView (request):
+def questionView(request):
     if request.method == 'POST':
         question_title = request.POST.get('question_title')
         question = request.POST.get('question')
         question_category = request.POST.get('category')
         question_tags = request.POST.get('tag', '')
 
-        print(question_category)
-
         user = request.user
 
         qn = Question.objects.create(
-            user = user,
-            question_title = question_title,
-            category = question_category,
-            description = question,
-            view_flag = 1
+            user=user,
+            question_title=question_title,
+            category=question_category,
+            description=question,
+            view_flag=1
         )
 
-        """Creating python QuestionTag objects for each tag in question_tags list
-            This reduces the database hit
-        """
+        # Create QuestionTag objects
         tag_objects = []
         for tag in question_tags.strip().split(','):
-            _tag = QuestionTag(question=qn, tag=tag)
-            tag_objects.append(_tag)
+            tag = tag.strip()
+            if tag:  # Only add non-empty tags
+                tag_objects.append(QuestionTag(question=qn, tag=tag))
 
-        """Saving the objects in the database only once
-            Hit database only once
-        """
-        QuestionTag.objects.bulk_create(tag_objects)
+        if tag_objects:
+            QuestionTag.objects.bulk_create(tag_objects)
 
         return JsonResponse({
-            'message': 'Question submitted successful',
+            'message': 'Question submitted successfully',
             'status': 'successful'
         })
     
     question_obj = Question.objects.all().prefetch_related('questiontag_set')
-
     paginator = Paginator(question_obj, 5)
     page_num = request.GET.get('page')
     question_object = paginator.get_page(page_num)
 
-    return render (request, 'mainApp/index.html', {'question_object':question_object})
-
-
+    return render(request, 'mainApp/index.html', {'question_object': question_object})
 
 # Check if user is admin
 def is_admin(user):
@@ -213,7 +252,6 @@ def is_admin(user):
 @user_passes_test(is_admin)
 def admin_course_dashboard(request):
     """Admin dashboard for managing courses"""
-    # Get all courses
     courses = Course.objects.all()
     
     # Filtering options
@@ -245,7 +283,6 @@ def admin_course_dashboard(request):
     other_count = Course.objects.filter(education_level='Other').count()
     
     # Pagination
-    from django.core.paginator import Paginator
     paginator = Paginator(courses.order_by('-created_at'), 20)  
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -262,7 +299,7 @@ def admin_course_dashboard(request):
         'education_level_filter': education_level,
         'search_query': search_query,
         'status_filter': status_filter,
-        'education_levels': Course.EDUCATION_LEVELS,  # Get choices from model
+        'education_levels': Course.EDUCATION_LEVELS,
     }
     return render(request, 'mainApp/admin_courses.html', context)
 
@@ -275,7 +312,7 @@ def add_course(request):
         course_code = request.POST.get('course_code')
         course_credit = request.POST.get('course_credit', '3')
         course_description = request.POST.get('course_description')
-        education_level = request.POST.get('education_level')  # Changed from education_id
+        education_level = request.POST.get('education_level')
         course_file = request.FILES.get('course_file')
         
         # Validation
@@ -288,7 +325,7 @@ def add_course(request):
             return redirect('mainApp:admin_course_dashboard')
         
         # Check file size
-        max_size = 10 * 1024 * 1024  # 10MB
+        max_size = 10 * 1024 * 1024
         if course_file.size > max_size:
             messages.error(request, 'File size exceeds 10MB limit')
             return redirect('mainApp:admin_course_dashboard')
@@ -299,7 +336,7 @@ def add_course(request):
                 messages.warning(request, f'Course code "{course_code}" already exists')
                 return redirect('mainApp:admin_course_dashboard')
             
-            # Create course - NO education ForeignKey, use education_level directly
+            # Create course
             course = Course.objects.create(
                 education_level=education_level,
                 course_name=course_name,
@@ -317,7 +354,6 @@ def add_course(request):
         
         return redirect('mainApp:admin_course_dashboard')
     
-    # If GET request, redirect to dashboard
     return redirect('mainApp:admin_course_dashboard')
 
 @login_required
@@ -333,7 +369,7 @@ def edit_course(request, course_id):
             course.course_credit = request.POST.get('course_credit', course.course_credit)
             course.course_description = request.POST.get('course_description', course.course_description)
             
-            # Update education_level instead of education ForeignKey
+            # Update education_level
             education_level = request.POST.get('education_level')
             if education_level in dict(Course.EDUCATION_LEVELS).keys():
                 course.education_level = education_level
@@ -341,7 +377,6 @@ def edit_course(request, course_id):
             # Handle file upload
             if 'course_file' in request.FILES and request.FILES['course_file']:
                 new_file = request.FILES['course_file']
-                # Check file size
                 max_size = 10 * 1024 * 1024
                 if new_file.size > max_size:
                     return JsonResponse({
@@ -472,7 +507,6 @@ def course_statistics(request):
     from django.db.models import Count
     from datetime import datetime, timedelta
     
-    # Get time-based statistics
     today = datetime.now().date()
     last_week = today - timedelta(days=7)
     last_month = today - timedelta(days=30)
@@ -515,3 +549,109 @@ def course_statistics(request):
             'master_courses': Course.objects.filter(education_level='Masters').count(),
         }
     })
+
+def load_more_answers(request):
+    question_id = request.GET.get('question')
+    offset = int(request.GET.get('offset', 0))
+    limit = 5
+    
+    try:
+        question = Question.objects.get(id=question_id)
+        # Get top-level answers only (parent=None)
+        answers = question.answers.filter(parent=None).order_by('-date_time')[offset:offset + limit]
+        
+        html = render_to_string('mainApp/answer_tree.html', {
+            'answers': answers
+        }, request=request)
+        
+        return JsonResponse({
+            'success': True,
+            'html': html,
+            'has_more': question.answers.filter(parent=None).count() > offset + limit
+        })
+        
+    except Question.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Question not found.'
+        })
+
+@login_required
+
+def rate_answer(request):
+    try:
+        data = json.loads(request.body)
+        answer_id = data.get('answer_id')
+        vote_type = data.get('type')  # 'up' or 'down'
+        
+        if not answer_id or vote_type not in ['up', 'down']:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid request data'
+            })
+        
+        try:
+            answer = Reply.objects.get(id=answer_id)
+        except Reply.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Answer not found'
+            })
+        
+        # Check if user already voted
+        existing_vote = Vote.objects.filter(user=request.user, reply=answer).first()
+        
+        if existing_vote:
+            # User is changing their vote
+            if existing_vote.vote_type == vote_type:
+                # User is removing their vote
+                existing_vote.delete()
+                if vote_type == 'up':
+                    answer.upvotes = max(0, answer.upvotes - 1)
+                else:
+                    answer.downvotes = max(0, answer.downvotes - 1)
+            else:
+                # User is changing vote type
+                if existing_vote.vote_type == 'up':
+                    answer.upvotes = max(0, answer.upvotes - 1)
+                    answer.downvotes += 1
+                else:
+                    answer.downvotes = max(0, answer.downvotes - 1)
+                    answer.upvotes += 1
+                existing_vote.vote_type = vote_type
+                existing_vote.save()
+        else:
+            # New vote
+            Vote.objects.create(
+                user=request.user,
+                reply=answer,
+                vote_type=vote_type
+            )
+            if vote_type == 'up':
+                answer.upvotes += 1
+            else:
+                answer.downvotes += 1
+        
+        answer.save()
+        
+        # Check if user has already voted
+        user_vote = None
+        if request.user.is_authenticated:
+            user_vote_obj = Vote.objects.filter(user=request.user, reply=answer).first()
+            if user_vote_obj:
+                user_vote = user_vote_obj.vote_type
+        
+        return JsonResponse({
+            'success': True,
+            'upvotes': answer.upvotes,
+            'downvotes': answer.downvotes,
+            'rating_score': answer.rating_score,
+            'user_vote': user_vote,
+            'message': 'Vote submitted successfully'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        })
